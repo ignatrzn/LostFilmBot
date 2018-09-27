@@ -14,6 +14,7 @@ const APP_URL = process.env.APP_URL
 const BOT_TOKEN = process.env.BOT_TOKEN
 
 const options = {
+  onlyFirstMatch: true,
   webHook: {
     port: process.env.PORT,
   },
