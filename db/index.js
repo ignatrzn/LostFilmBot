@@ -1,10 +1,9 @@
 const { Pool } = require('pg')
 
-const DB_URI = process.env.DB_URI
+const DATABASE_URL = process.env.DATABASE_URL
 
 const pool = new Pool({
-  application_name: 'B2G-front',
-  connectionString: DB_URI,
+  connectionString: DATABASE_URL,
   ssl: true,
 })
 
