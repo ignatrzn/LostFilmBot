@@ -119,7 +119,7 @@ bot.on('message', msg => {
       })
       .catch(e => console.error(e.stack))
   } else if (msg.text === flatSubscriptionMenu[0]) {
-    bot.sendMessage(msg.chat.id, 'Пожалуйста, выберите время', TIME).then(sentMessage => {})
+    bot.sendMessage(msg.chat.id, 'Пожалуйста, выберите время', TIME)
   } else if (msg.text === flatSubscriptionMenu[1]) {
     bot.sendMessage(msg.from.id, '🍽 Меню:', MAIN_MENU)
   } else {
