@@ -5,7 +5,6 @@ const TelegramBot = require('node-telegram-bot-api')
 const moment = require('moment')
 const request = require('request')
 const { flatten } = require('ramda')
-const schedule = require('node-schedule')
 
 const { RSS_URL } = require('./common/constants')
 const { MAIN_MENU, SUBSCRIPTION_MENU, TIME } = require('./common/keyboards')
@@ -56,14 +55,6 @@ const getRSS = chatId => {
     } else {
       console.log('Произошла ошибка: ' + error)
     }
-  })
-}
-
-const scheduleJob = row => {
-  const [h, m, s] = row.time.split(':')
-
-  schedule.scheduleJob(`${s} ${m} ${h} * * *`, () => {
-    getRSS(row.chat_id)
   })
 }
 
@@ -156,7 +147,6 @@ bot.on('callback_query', msg => {
       .then(res => {
         if (res.rowCount) {
           bot.sendMessage(chat_id, `Вы будете получать RSS в 🕒 *${payload}*`, SUBSCRIPTION_MENU)
-          scheduleJob({ chat_id, time: payload })
         }
       })
       .catch(e => console.error(e.stack))
@@ -176,8 +166,14 @@ bot.on('polling_error', error => {
   console.error(error.stack)
 })
 
-query('SELECT chat_id, time FROM public.schedules').then(result => {
-  if (result.rowCount) {
-    result.rows.map(row => scheduleJob(row))
-  }
-})
+setInterval(() => {
+  query('SELECT chat_id, time FROM public.schedules').then(result => {
+    if (result.rowCount) {
+      result.rows.map(row => {
+        if (new Date().toLocaleTimeString().slice(0, 5) === row.time.slice(0, 5)) {
+          getRSS(row.chat_id)
+        }
+      })
+    }
+  })
+}, 1000 * 60)
