@@ -91,76 +91,9 @@ bot.on('message', msg => {
 
   if (msg.text === flatMainMenu[0]) {
     getRSS(chatId)
-  } else if (msg.text === flatMainMenu[1]) {
-    query('SELECT id, user_id, chat_id, time FROM public.schedules where user_id=$1', [msg.from.id])
-      .then(result => {
-        if (result.rowCount) {
-          bot.sendMessage(msg.chat.id, 'Вы будете получать RSS ежедневно в:', SUBSCRIPTION_MENU).then(() => {
-            result.rows.map(row => {
-              const options = {
-                parse_mode: 'Markdown',
-                disable_notification: true,
-                reply_markup: JSON.stringify({
-                  inline_keyboard: [
-                    [
-                      {
-                        text: '➖ Удалить➖ ',
-                        callback_data: JSON.stringify({ type: 'unsubscribe', payload: row.id }),
-                      },
-                    ],
-                  ],
-                }),
-              }
-              bot.sendMessage(msg.chat.id, `🕒 *${row.time}*`, options)
-            })
-          })
-        } else {
-          bot.sendMessage(msg.chat.id, 'Вы не подписаны на ежедневное получение RSS', SUBSCRIPTION_MENU)
-        }
-      })
-      .catch(e => console.error(e.stack))
-  } else if (msg.text === flatSubscriptionMenu[0]) {
-    bot.sendMessage(msg.chat.id, 'Пожалуйста, выберите время', TIME)
-  } else if (msg.text === flatSubscriptionMenu[1]) {
-    bot.sendMessage(msg.from.id, '🍽 Меню:', MAIN_MENU)
   } else {
     bot.sendMessage(msg.from.id, '‿( ́ ̵_-`)‿', MAIN_MENU)
   }
-})
-
-bot.on('callback_query', msg => {
-  const {
-    id,
-    from: { id: user_id },
-    message: {
-      chat: { id: chat_id },
-    },
-  } = msg
-
-  const { type, payload } = JSON.parse(msg.data)
-
-  if (type === 'subscribe') {
-    query(`INSERT INTO schedules(id, user_id, chat_id, time) VALUES(nextval('schedules_ids'), $1, $2, $3)`, [
-      user_id,
-      chat_id,
-      payload,
-    ])
-      .then(res => {
-        if (res.rowCount) {
-          bot.sendMessage(chat_id, `Вы будете получать RSS в 🕒 *${payload}*`, SUBSCRIPTION_MENU)
-        }
-      })
-      .catch(e => console.error(e.stack))
-  } else if (type === 'unsubscribe') {
-    query(`DELETE from schedules WHERE id = $1 RETURNING time`, [payload])
-      .then(res => {
-        if (res.rowCount) {
-          bot.sendMessage(chat_id, `Вы больше не будете получать RSS в 🕒 *${res.rows[0].time}*`, SUBSCRIPTION_MENU)
-        }
-      })
-      .catch(e => console.error(e.stack))
-  }
-  bot.answerCallbackQuery(id, { text: 'Готово!' }, false)
 })
 
 bot.on('polling_error', error => {
