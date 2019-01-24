@@ -7,7 +7,7 @@ const request = require('request')
 const { flatten } = require('ramda')
 
 const { RSS_URL } = require('./common/constants')
-const { MAIN_MENU, SUBSCRIPTION_MENU, TIME } = require('./common/keyboards')
+const { MAIN_MENU } = require('./common/keyboards')
 const { query } = require('./db')
 
 const APP_URL = process.env.APP_URL
@@ -25,7 +25,6 @@ const bot = new TelegramBot(BOT_TOKEN, options)
 bot.setWebHook(`${APP_URL}/bot${BOT_TOKEN}`)
 
 const flatMainMenu = flatten(MAIN_MENU.reply_markup.keyboard)
-const flatSubscriptionMenu = flatten(SUBSCRIPTION_MENU.reply_markup.keyboard)
 
 const getRSS = chatId => {
   const opts = {
@@ -88,26 +87,13 @@ bot.onText(/\/menu/, msg => {
 
 bot.on('message', msg => {
   const chatId = msg.chat.id
-
   if (msg.text === flatMainMenu[0]) {
     getRSS(chatId)
   } else {
-    bot.sendMessage(msg.from.id, '‿( ́ ̵_-`)‿', MAIN_MENU)
+    bot.sendMessage(msg.from.id, '‿( ́ ̵_-`)‿', { parse_mode: 'HTML' }, MAIN_MENU)
   }
 })
 
 bot.on('polling_error', error => {
   console.error(error.stack)
 })
-
-setInterval(() => {
-  query('SELECT chat_id, time FROM public.schedules').then(result => {
-    if (result.rowCount) {
-      result.rows.map(row => {
-        if (new Date().toLocaleTimeString().slice(0, 5) === row.time.slice(0, 5)) {
-          getRSS(row.chat_id)
-        }
-      })
-    }
-  })
-}, 1000 * 60)
