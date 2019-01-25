@@ -85,6 +85,13 @@ bot.onText(/\/menu/, msg => {
   bot.sendMessage(msg.from.id, '🍽 Меню:', MAIN_MENU)
 })
 
+bot.on('message', msg => {
+  const chatId = msg.chat.id
+  if (msg.text === flatMainMenu[0]) {
+    getRSS(chatId)
+  }
+})
+
 bot.on('polling_error', error => {
   console.error(error.stack)
 })
